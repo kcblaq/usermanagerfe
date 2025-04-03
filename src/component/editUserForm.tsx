@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"; // Add this import
+import { useState } from "react";
 import { Button } from "../components/ui/button"
 import {
   Dialog,
@@ -16,8 +16,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "../components/ui/form"
 import { Input } from "../components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import { Checkbox } from "../components/ui/checkbox"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -33,10 +42,12 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
+  role: z.enum(["user", "admin"]).optional(),
+  isActive: z.boolean().optional(),
 })
 
 export function EditUserForm({ user }: { user: User }) {
-  const [open, setOpen] = useState(false); // Add state for dialog control
+  const [open, setOpen] = useState(false);
   const updateUser = useUpdateUser()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,14 +55,24 @@ export function EditUserForm({ user }: { user: User }) {
     defaultValues: {
       name: user.name,
       email: user.email,
+      role: user.role || "user",
+      isActive: user.isActive !== undefined ? user.isActive : true,
     },
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    updateUser.mutate({ _id: user._id ?? "", userData: { ...values, _id: user._id ?? "", createdAt: user.createdAt, updatedAt: user.updatedAt } }, {
-      onError: () => {
+    updateUser.mutate({ 
+      _id: user._id ?? "", 
+      userData: { 
+        ...values, 
+        _id: user._id ?? "", 
+        createdAt: user.createdAt, 
+        updatedAt: user.updatedAt 
+      } 
+    }, {
+      onError: (error) => {
         notify({
-          message: "Error updating user",
+          message: error.message || "Error updating user",
           type: 'error',
           position: 'top-right',
           duration: 4000
@@ -64,13 +85,13 @@ export function EditUserForm({ user }: { user: User }) {
           position: 'top-right',
           duration: 4000
         })
-        setOpen(false); // Close the dialog on success
+        setOpen(false);
       }
     })
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}> {/* Add open and onOpenChange props */}
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <Edit className="h-4 w-4" />
@@ -112,12 +133,63 @@ export function EditUserForm({ user }: { user: User }) {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role (Optional)</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    User permissions level
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isActive"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Active Status
+                    </FormLabel>
+                    <FormDescription>
+                      Whether this user account is currently active
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
             
             <div className="flex justify-end gap-2">
               <Button 
                 type="button" 
                 variant="outline"
-                onClick={() => setOpen(false)} // Update to use setOpen
+                onClick={() => setOpen(false)}
               >
                 Cancel
               </Button>

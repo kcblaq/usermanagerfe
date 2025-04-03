@@ -104,13 +104,13 @@ export const TableDisplay = () => {
                   </div>
                 </td>
                 <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    Admin
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${person.role === 'admin' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} `}>
+                    {person.role === 'admin' ? 'Admin' : 'User'}
                   </span>
                 </td>
                 <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                    Active
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${person.isActive ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'} `}>
+                    {person.isActive ? 'Active' : 'Nill'}
                   </span>
                 </td>
                 <td className="px-2 sm:px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
