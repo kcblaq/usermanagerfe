@@ -77,7 +77,8 @@ export function AddUserForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>
+        {/* <Button className="bg-[#DAEBFF]"> */}
+        <Button className="bg-[#1A3CB8] hover:bg-[#DAEBFF] cursor-pointer hover:text-black">
           <UserPlus className="h-4 w-4 mr-2" />
           Add User
         </Button>
