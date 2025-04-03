@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { UserPlus } from "lucide-react"
 import { useCreateUser } from "../hook/useUserHook"
+import { notify } from "../lib/notify"
 
 
 // 1. Define form schema
@@ -50,9 +51,25 @@ export function AddUserForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     createUser.mutate({
       ...values,
-      _id: Date.now().toString(), // Example ID generation
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+    }, {
+      onError: () => {
+        notify({
+          message: "Error creating user",
+          type: 'error',
+          position: 'top-right',
+          duration: 4000
+        })
+      },
+      onSuccess: () => {
+        notify({
+          message: "User has been added successfully",
+          type: 'success',
+          position: 'top-right',
+          duration: 4000
+        })
+      }
     })
     form.reset()
   }

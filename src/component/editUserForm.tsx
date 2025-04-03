@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"; // Add this import
 import { Button } from "../components/ui/button"
 import {
   Dialog,
@@ -23,8 +24,8 @@ import * as z from "zod"
 import { Edit, Loader2 } from "lucide-react"
 import { User } from "../type/User"
 import { useUpdateUser } from "../hook/useUserHook"
+import { notify } from "../lib/notify"
 
-// Reuse the same schema as AddUserForm for consistency
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
@@ -35,6 +36,7 @@ const formSchema = z.object({
 })
 
 export function EditUserForm({ user }: { user: User }) {
+  const [open, setOpen] = useState(false); // Add state for dialog control
   const updateUser = useUpdateUser()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,11 +48,29 @@ export function EditUserForm({ user }: { user: User }) {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    updateUser.mutate({ _id: user._id, userData: { ...values, _id: user._id, createdAt: user.createdAt, updatedAt: user.updatedAt } })
+    updateUser.mutate({ _id: user._id ?? "", userData: { ...values, _id: user._id ?? "", createdAt: user.createdAt, updatedAt: user.updatedAt } }, {
+      onError: () => {
+        notify({
+          message: "Error updating user",
+          type: 'error',
+          position: 'top-right',
+          duration: 4000
+        })
+      },
+      onSuccess: () => {
+        notify({
+          message: "User has been updated successfully",
+          type: 'success',
+          position: 'top-right',
+          duration: 4000
+        })
+        setOpen(false); // Close the dialog on success
+      }
+    })
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}> {/* Add open and onOpenChange props */}
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <Edit className="h-4 w-4" />
@@ -94,11 +114,13 @@ export function EditUserForm({ user }: { user: User }) {
             />
             
             <div className="flex justify-end gap-2">
-              <DialogTrigger asChild>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
-              </DialogTrigger>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => setOpen(false)} // Update to use setOpen
+              >
+                Cancel
+              </Button>
               <Button 
                 type="submit"
                 disabled={updateUser.isPending}

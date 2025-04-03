@@ -60,8 +60,8 @@ export function MyDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={handleClose}>Cancel</Button>
-                    <Button onClick={handleConfirm}>Confirm</Button>
+                    <Button variant="outline" onClick={handleClose} className="cursor-pointer">Cancel</Button>
+                    <Button onClick={handleConfirm} className="bg-red-500 text-white cursor-pointer hover:bg-white hover:text-red-500 hover:border hover:border-red-500">Confirm</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
