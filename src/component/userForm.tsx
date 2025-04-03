@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react";
 import { Button } from "../components/ui/button"
 import {
   Dialog,
@@ -15,15 +16,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "../components/ui/form"
 import { Input } from "../components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import { Checkbox } from "../components/ui/checkbox"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { UserPlus } from "lucide-react"
+import { Loader2, UserPlus } from "lucide-react"
 import { useCreateUser } from "../hook/useUserHook"
 import { notify } from "../lib/notify"
-
 
 // 1. Define form schema
 const formSchema = z.object({
@@ -33,10 +42,13 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
+  role: z.enum(["user", "admin"]).optional(),
+  isActive: z.boolean().optional(),
 })
 
 export function AddUserForm() {
-  const createUser = useCreateUser()
+  const [open, setOpen] = useState(false);
+  const createUser = useCreateUser();
 
   // 2. Define form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,6 +56,8 @@ export function AddUserForm() {
     defaultValues: {
       name: "",
       email: "",
+      role: "user",
+      isActive: true,
     },
   })
 
@@ -54,9 +68,9 @@ export function AddUserForm() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }, {
-      onError: () => {
+      onError: (error) => {
         notify({
-          message: "Error creating user",
+          message: error.message || "Error creating user",
           type: 'error',
           position: 'top-right',
           duration: 4000
@@ -69,22 +83,21 @@ export function AddUserForm() {
           position: 'top-right',
           duration: 4000
         })
+        form.reset();
+        setOpen(false);
       }
     })
-    form.reset()
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {/* <Button className="bg-[#DAEBFF]"> */}
         <Button className="bg-[#1A3CB8] hover:bg-[#DAEBFF] cursor-pointer hover:text-black">
           <UserPlus className="h-4 w-4 mr-2" />
           Add User
         </Button>
       </DialogTrigger>
       
-
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
@@ -119,14 +132,79 @@ export function AddUserForm() {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    User permissions level
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isActive"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Active Status
+                    </FormLabel>
+                    <FormDescription>
+                      Whether this user account is currently active
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
             
             <div className="flex justify-end gap-2">
-              <DialogTrigger asChild>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
-              </DialogTrigger>
-              <Button type="submit">Save</Button>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={createUser.isPending}
+              >
+                {createUser.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Save"
+                )}
+              </Button>
             </div>
           </form>
         </Form>
